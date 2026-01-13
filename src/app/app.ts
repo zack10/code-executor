@@ -5,6 +5,7 @@ import {
   Component,
   ElementRef,
   inject,
+  OnDestroy,
   OnInit,
   signal,
   ViewChild,
@@ -49,7 +50,7 @@ interface ExecutionResult {
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
-export class App implements OnInit, AfterViewInit {
+export class App implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('editorContainer') editorContainer!: ElementRef;
   private readonly http = inject(HttpClient);
 
@@ -184,11 +185,11 @@ export class App implements OnInit, AfterViewInit {
     });
   }
 
-  onLanguageChange(event: any) {
-    const langId = typeof event === 'number' ? event : parseInt(event);
-    this.selectedLanguageId.set(langId);
+  onLanguageChange(langId: number | string) {
+    const id = typeof langId === 'string' ? Number.parseInt(langId, 10) : langId;
+    this.selectedLanguageId.set(id);
 
-    const lang = this.languages.find((l) => l.id === langId);
+    const lang = this.languages.find((l) => l.id === id);
     this.currentLanguage.set(lang);
     this.code.set(lang?.template || '');
     this.output.set('');
