@@ -63,31 +63,26 @@
   <div class="main-content">
     <!-- Code Editor Panel -->
     <div class="editor-panel">
-      <div class="panel-header">
-        <div class="panel-title">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <polyline points="16 18 22 12 16 6"></polyline>
-            <polyline points="8 6 2 12 8 18"></polyline>
-          </svg>
-          <span>Code Editor</span>
+      <div class="editor-panel">
+        <div class="panel-header">
+          <div class="panel-title">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+            <span>Code Editor</span>
+          </div>
+          <span class="file-extension">.{{ currentLanguage()?.ext }}</span>
         </div>
-        <span class="file-extension">.{{ currentLanguage()?.ext }}</span>
+        <div #editorContainer class="code-editor-container"></div>
       </div>
-      <textarea
-        #editor
-        [value]="code()"
-        (input)="onCodeChange($event)"
-        class="code-editor"
-        spellcheck="false"
-        [style.font-family]="'Monaco, Menlo, Consolas, monospace'"
-      ></textarea>
     </div>
 
     <!-- Output Panel -->

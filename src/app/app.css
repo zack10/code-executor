@@ -177,21 +177,10 @@
   border-color: rgba(248, 81, 73, 0.3);
 }
 
-.code-editor {
+.code-editor-container {
   flex: 1;
-  background: #0d1117;
-  color: #c9d1d9;
-  border: none;
-  padding: 20px;
-  font-size: 14px;
-  line-height: 1.6;
-  resize: none;
-  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-  overflow: auto;
-}
-
-.code-editor:focus {
-  outline: none;
+  overflow: hidden;
+  height: 100%;
 }
 
 .output-content {
