@@ -254,3 +254,7 @@
     grid-template-rows: 1fr 1fr;
   }
 }
+
+.cm-editor {
+  padding-right: 80px;
+}

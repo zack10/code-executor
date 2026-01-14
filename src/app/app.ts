@@ -14,15 +14,33 @@ import { FormsModule } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 
 // CodeMirror imports
+import {
+  autocompletion,
+  closeBrackets,
+  closeBracketsKeymap,
+  completionKeymap,
+} from '@codemirror/autocomplete';
+import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
 import { cpp } from '@codemirror/lang-cpp';
 import { java } from '@codemirror/lang-java';
 import { javascript } from '@codemirror/lang-javascript';
 import { php } from '@codemirror/lang-php';
 import { python } from '@codemirror/lang-python';
 import { rust } from '@codemirror/lang-rust';
-import { EditorState } from '@codemirror/state';
+import {
+  bracketMatching,
+  defaultHighlightStyle,
+  foldGutter,
+  foldKeymap,
+  indentOnInput,
+  syntaxHighlighting,
+} from '@codemirror/language';
+import { lintKeymap } from '@codemirror/lint';
+import { highlightSelectionMatches, searchKeymap } from '@codemirror/search';
+import { EditorState, Extension } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { basicSetup, EditorView } from 'codemirror';
+import { EditorView, keymap, lineNumbers } from '@codemirror/view';
+import { showMinimap } from '@replit/codemirror-minimap';
 
 interface Language {
   id: number;
@@ -113,7 +131,7 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
       id: 51,
       name: 'C# (Mono 6.6.0)',
       ext: 'cs',
-      codemirrorLang: java(), // C# uses Java highlighting
+      codemirrorLang: java(),
       template:
         'using System;\n\nclass Program {\n    static void Main() {\n        Console.WriteLine("Hello, World!");\n    }\n}',
     },
@@ -121,14 +139,14 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
       id: 60,
       name: 'Go (1.13.5)',
       ext: 'go',
-      codemirrorLang: javascript(), // Go uses JavaScript highlighting
+      codemirrorLang: javascript(),
       template: 'package main\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello, World!")\n}',
     },
     {
       id: 72,
       name: 'Ruby (2.7.0)',
       ext: 'rb',
-      codemirrorLang: python(), // Ruby uses Python highlighting
+      codemirrorLang: python(),
       template: 'puts "Hello, World!"',
     },
     {
@@ -137,6 +155,13 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
       ext: 'rs',
       codemirrorLang: rust(),
       template: 'fn main() {\n    println!("Hello, World!");\n}',
+    },
+    {
+      id: 74,
+      name: 'Typescript (3.8.3)',
+      ext: 'ts',
+      codemirrorLang: javascript({ typescript: true }),
+      template: 'console.log("Hello, World!");',
     },
   ];
 
@@ -152,6 +177,36 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     this.initializeEditor();
   }
 
+  // Enhanced editor setup with full autocomplete
+  getBasicExtensions(): Extension[] {
+    return [
+      lineNumbers(),
+      history(),
+      foldGutter(),
+      indentOnInput(),
+      syntaxHighlighting(defaultHighlightStyle, { fallback: true }),
+      bracketMatching(),
+      closeBrackets(),
+      autocompletion({
+        activateOnTyping: true,
+        override: [],
+        closeOnBlur: true,
+        maxRenderedOptions: 100,
+        defaultKeymap: true,
+      }),
+      highlightSelectionMatches(),
+      keymap.of([
+        ...closeBracketsKeymap,
+        ...defaultKeymap,
+        ...searchKeymap,
+        ...historyKeymap,
+        ...foldKeymap,
+        ...completionKeymap,
+        ...lintKeymap,
+      ]),
+    ];
+  }
+
   initializeEditor() {
     if (this.editorView) {
       this.editorView.destroy();
@@ -162,19 +217,58 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     const startState = EditorState.create({
       doc: this.code(),
       extensions: [
-        basicSetup,
+        ...this.getBasicExtensions(),
         lang?.codemirrorLang || javascript(),
         oneDark,
+
+        showMinimap.of({
+          displayText: 'characters',
+          showOverlay: 'always',
+          create: (view: EditorView) => {
+            const dom = document.createElement('div');
+            dom.className = 'cm-minimap';
+            return { dom };
+          },
+        }),
+
         EditorView.updateListener.of((update) => {
           if (update.docChanged) {
             this.code.set(update.state.doc.toString());
           }
         }),
+
         EditorView.theme({
           '&': { height: '100%' },
-          '.cm-scroller': { overflow: 'auto' },
-          '.cm-content': { padding: '16px 0' },
-          '.cm-gutters': { backgroundColor: '#0d1117', borderRight: '1px solid #30363d' },
+          '.cm-scroller': {
+            overflow: 'auto',
+            fontFamily: "'Fira Code', 'Consolas', 'Monaco', monospace",
+          },
+          '.cm-minimap': {
+            width: '80px',
+            backgroundColor: '#0d1117',
+            borderLeft: '1px solid #30363d',
+          },
+          '.cm-tooltip-autocomplete': {
+            backgroundColor: '#1e1e1e',
+            border: '1px solid #454545',
+            borderRadius: '4px',
+            boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
+          },
+          '.cm-tooltip-autocomplete ul': {
+            fontFamily: "'Fira Code', 'Consolas', 'Monaco', monospace",
+            fontSize: '13px',
+          },
+          '.cm-tooltip-autocomplete ul li': {
+            padding: '4px 8px',
+          },
+          '.cm-tooltip-autocomplete ul li[aria-selected]': {
+            backgroundColor: '#094771',
+            color: '#ffffff',
+          },
+          '.cm-completionIcon': {
+            width: '1em',
+            marginRight: '0.5em',
+          },
         }),
       ],
     });
@@ -195,7 +289,6 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     this.output.set('');
     this.executionResult.set(null);
 
-    // Reinitialize editor with new language
     this.initializeEditor();
   }
 
