@@ -11,9 +11,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterOutlet } from '@angular/router';
 
-// CodeMirror imports
 import {
   autocompletion,
   closeBrackets,
@@ -27,6 +25,7 @@ import { javascript } from '@codemirror/lang-javascript';
 import { php } from '@codemirror/lang-php';
 import { python } from '@codemirror/lang-python';
 import { rust } from '@codemirror/lang-rust';
+import { sql } from '@codemirror/lang-sql';
 import {
   bracketMatching,
   defaultHighlightStyle,
@@ -64,7 +63,7 @@ interface ExecutionResult {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -162,6 +161,13 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
       ext: 'ts',
       codemirrorLang: javascript({ typescript: true }),
       template: 'console.log("Hello, World!");',
+    },
+    {
+      id: 82,
+      name: 'SQL (SQLite 3.27.2)',
+      ext: 'sql',
+      codemirrorLang: sql(),
+      template: `-- Create a table and insert data\nCREATE TABLE users (id SERIAL PRIMARY KEY, name TEXT);\nINSERT INTO users (name) VALUES ('Alice'), ('Bob');\n\n-- Select data\nSELECT * FROM users;`,
     },
   ];
 
