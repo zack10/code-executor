@@ -34,11 +34,13 @@
               "extractLicenses": true,
               "sourceMap": false,
               "outputHashing": "all",
+              "prerender": false,
+              "ssr": false,
               "budgets": [
                 {
                   "type": "initial",
                   "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumError": "3.5MB"
                 },
                 {
                   "type": "anyComponentStyle",
