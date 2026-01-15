@@ -30,14 +30,7 @@
           },
           "configurations": {
             "production": {
-              "optimization": {
-                "scripts": true,
-                "styles": {
-                  "minify": true,
-                  "inlineCritical": false
-                },
-                "fonts": true
-              },
+              "optimization": false,
               "extractLicenses": true,
               "sourceMap": false,
               "outputHashing": "all",
