@@ -37,5 +37,5 @@ jobs:
           context: .
           push: true
           tags: |
-            zack10/code-executor-frontend:latest
-            zack10/code-executor-frontend:${{ github.sha }}
+            zackzachary/code-executor-frontend:latest
+            zackzachary/code-executor-frontend:${{ github.sha }}
