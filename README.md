@@ -1,5 +1,21 @@
 # CodeExecutor
 
+**CodeExecutor** is a web-based code editor and execution platform that allows users to write, edit, and run code directly in the browser. It supports multiple programming languages and provides an interactive development environment with real-time code execution capabilities powered by WebContainer/Docker technology.
+
+## Architecture Overview
+
+### Code Execution Backend
+
+CodeExecutor leverages **Judge0** as its code execution engine, which runs on an Ubuntu server and uses **isolate** to securely execute user code. This sandboxing approach ensures that code submissions are executed in isolated, lightweight containers, preventing malicious or runaway code from affecting the host system or other users' submissions. Judge0 supports a wide range of programming languages and provides reliable, secure code execution.
+
+### Web Application Frontend
+
+The frontend is built with **Angular**, a modern TypeScript-based framework that delivers a responsive and intuitive user interface. The application uses **Docker** and **WebContainer** technology to enable the execution and testing of web applications directly in the browser. This allows developers to build and preview Angular applications in real-time without requiring a local development environment.
+
+### Future Frameworks
+
+We're expanding platform support with **React** and **Vue.js** coming soon. These frameworks will also be executable within the browser using the same WebContainer technology, providing a unified platform for full-stack web development.
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.3.
 
 ## Development server
