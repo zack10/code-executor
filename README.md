@@ -4,17 +4,23 @@
 
 ## Architecture Overview
 
-### Code Execution Backend
+### Built with Angular 21
+The entire CodeExecutor platform is built with **Angular 21**, a modern TypeScript-based framework that delivers a responsive and intuitive user interface. The application provides a unified platform for code execution across different use cases with two distinct execution approaches.
 
-CodeExecutor leverages **Judge0** as its code execution engine, which runs on an Ubuntu server and uses **isolate** to securely execute user code. This sandboxing approach ensures that code submissions are executed in isolated, lightweight containers, preventing malicious or runaway code from affecting the host system or other users' submissions. Judge0 supports a wide range of programming languages and provides reliable, secure code execution.
+### Code Execution Methods
 
-### Web Application Frontend
+#### Programming Languages (via Judge0)
+For traditional programming languages (such as C, C++, Python, Java, etc.), CodeExecutor integrates with the **Judge0** API. Judge0 runs on an Ubuntu server and uses **isolate** to securely execute user code in sandboxed, lightweight containers. This ensures that code submissions are executed in isolated environments, preventing malicious or runaway code from affecting the host system or other submissions.
 
-The frontend is built with **Angular**, a modern TypeScript-based framework that delivers a responsive and intuitive user interface. The application uses **Docker** and **WebContainer** technology to enable the execution and testing of web applications directly in the browser. This allows developers to build and preview Angular applications in real-time without requiring a local development environment.
+#### Web Applications (Angular, React, Vue.js)
+For web application execution, CodeExecutor provides two secure approaches:
+
+1. **Docker Approach**: Executes the uploaded Angular application code within an isolated Docker container. The compiled files are generated inside the container and returned to the client, ensuring complete isolation and security.
+
+2. **WebContainer Approach**: Leverages browser-based WebContainer technology to build and execute Angular applications entirely locally within the browser environment. This approach eliminates the need for a backend Express.js server to create Docker images and manage file compilation, providing a streamlined, client-side execution experience.
 
 ### Future Frameworks
-
-We're expanding platform support with **React** and **Vue.js** coming soon. These frameworks will also be executable within the browser using the same WebContainer technology, providing a unified platform for full-stack web development.
+React and Vue.js support is coming soon, with both frameworks compatible with both Docker and WebContainer execution approaches.
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.3.
 
