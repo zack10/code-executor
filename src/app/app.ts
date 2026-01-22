@@ -310,7 +310,10 @@ export class AppComponent {
     this.initializeEditor();
   }
 
-  // Enhanced editor setup with full autocomplete
+  /**
+   * Gets the basic extensions for the CodeMirror editor
+   * @returns Array of CodeMirror extensions
+   */
   getBasicExtensions(): Extension[] {
     return [
       lineNumbers(),
@@ -340,6 +343,9 @@ export class AppComponent {
     ];
   }
 
+  /**
+   * Initializes the CodeMirror editor
+   */
   initializeEditor() {
     if (this.editorView) {
       this.editorView.destroy();
@@ -413,6 +419,10 @@ export class AppComponent {
     });
   }
 
+  /**
+   * Handles language selection changes
+   * @param langId The selected language ID
+   */
   onLanguageChange(langId: number | string) {
     const id = typeof langId === 'string' ? Number.parseInt(langId, 10) : langId;
     this.selectedLanguageId.set(id);
@@ -427,6 +437,11 @@ export class AppComponent {
     this.initializeEditor();
   }
 
+  /**
+   * Encodes a string to base64, handling UTF-8 characters
+   * @param str The input string
+   * @returns The base64 encoded string
+   */
   encodeBase64(str: string): string {
     return btoa(
       encodeURIComponent(str).replaceAll(/%([0-9A-F]{2})/g, (match, p1) => {
@@ -435,6 +450,11 @@ export class AppComponent {
     );
   }
 
+  /**
+   * Decodes a base64 encoded string, handling UTF-8 characters
+   * @param str The base64 encoded string
+   * @returns The decoded string
+   */
   decodeBase64(str: string): string {
     try {
       return decodeURIComponent(
@@ -451,6 +471,10 @@ export class AppComponent {
     }
   }
 
+  /**
+   * Runs the code based on the selected language
+   * @returns void
+   */
   runCode() {
     const currentLang = this.currentLanguage();
 
@@ -464,6 +488,10 @@ export class AppComponent {
     this.runInJudge0();
   }
 
+  /**
+   * Compiles an Angular component using the external compiler service
+   * @param sourceCode The Angular component source code
+   */
   compileAngularComponent(sourceCode: string) {
     this.isRunning.set(true);
     this.isPreviewMode.set(true);
@@ -528,7 +556,11 @@ export class AppComponent {
     );
   }
 
-  // Helper to clean up the messy CLI output
+  /**
+   * Helper to clean up the messy CLI output from Angular compilation errors
+   * @param logs Raw logs from Angular CLI
+   * @returns Formatted error message
+   */
   formatAngularError(logs: string): string {
     // Look for the "Error:" keyword in Angular logs
     const errorIndex = logs.indexOf('Error:');
@@ -538,6 +570,9 @@ export class AppComponent {
     return logs;
   }
 
+  /**
+   * Sets up a global error trap inside the iframe to catch runtime errors
+   */
   private setupErrorTrap() {
     const iframe = this.previewFrame.nativeElement;
 
@@ -555,8 +590,11 @@ export class AppComponent {
     };
   }
 
-  // 5. helper method to create preview HTML
-  // Use the logic we discussed earlier to stitch the files together
+  /**
+   *  Creates a complete HTML document for previewing
+   * @param files Object with file names as keys and content as values
+   * @returns Complete HTML string
+   */
   createPreviewHtml(files: any): string {
     let html = files['index.html'] || '';
     // Clean up template tags
@@ -576,6 +614,9 @@ export class AppComponent {
     return html.replace('</head>', `${style}</head>`).replace('</body>', `${scripts}</body>`);
   }
 
+  /**
+   * Runs the code using the Judge0 API
+   */
   runInJudge0() {
     console.log('Starting execution...');
     this.isRunning.set(true);
