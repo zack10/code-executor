@@ -5,14 +5,18 @@ import { WebContainer } from '@webcontainer/api';
   providedIn: 'root',
 })
 export class WebContainerService {
+  private instancePromise: Promise<WebContainer> | null = null;
   private webcontainerInstance!: WebContainer;
 
   async init() {
-    if (!this.webcontainerInstance) {
-      // Boot the container
-      this.webcontainerInstance = await WebContainer.boot();
-    }
-    return this.webcontainerInstance;
+    if (this.instancePromise) return this.instancePromise;
+
+    this.instancePromise = WebContainer.boot().then((instance) => {
+      this.webcontainerInstance = instance;
+      return instance;
+    });
+
+    return this.instancePromise;
   }
 
   async mountFiles(files: any) {
