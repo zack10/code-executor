@@ -1,5 +1,27 @@
 # CodeExecutor
 
+**CodeExecutor** is a web-based code editor and execution platform that allows users to write, edit, and run code directly in the browser. It supports multiple programming languages and provides an interactive development environment with real-time code execution capabilities powered by WebContainer/Docker technology.
+
+## Architecture Overview
+
+### Built with Angular 21
+The entire CodeExecutor platform is built with **Angular 21**, a modern TypeScript-based framework that delivers a responsive and intuitive user interface. The application provides a unified platform for code execution across different use cases with two distinct execution approaches.
+
+### Code Execution Methods
+
+#### Programming Languages (via Judge0)
+For traditional programming languages (such as C, C++, Python, Java, etc.), CodeExecutor integrates with the **Judge0** API. Judge0 runs on an Ubuntu server and uses **isolate** to securely execute user code in sandboxed, lightweight containers. This ensures that code submissions are executed in isolated environments, preventing malicious or runaway code from affecting the host system or other submissions.
+
+#### Web Applications (Angular, React, Vue.js)
+For web application execution, CodeExecutor provides two secure approaches:
+
+1. **Docker Approach**: Executes the uploaded Angular application code within an isolated Docker container. The compiled files are generated inside the container and returned to the client, ensuring complete isolation and security.
+
+2. **WebContainer Approach**: Leverages browser-based WebContainer technology to build and execute Angular applications entirely locally within the browser environment. This approach eliminates the need for a backend Express.js server to create Docker images and manage file compilation, providing a streamlined, client-side execution experience.
+
+### Future Frameworks
+React and Vue.js support is coming soon, with both frameworks compatible with both Docker and WebContainer execution approaches.
+
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.3.
 
 ## Development server

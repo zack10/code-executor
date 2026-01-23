@@ -67,7 +67,13 @@
               "buildTarget": "code-executor:build:development"
             }
           },
-          "defaultConfiguration": "development"
+          "defaultConfiguration": "development",
+          "options": {
+            "headers": {
+              "Cross-Origin-Embedder-Policy": "require-corp",
+              "Cross-Origin-Opener-Policy": "same-origin"
+            }
+          }
         },
         "test": {
           "builder": "@angular/build:unit-test"

@@ -42,6 +42,8 @@ import { EditorState, Extension } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView, keymap, lineNumbers } from '@codemirror/view';
 import { showMinimap } from '@replit/codemirror-minimap';
+import { TerminalCleanPipe } from './terminal-clean-pipe';
+import { WebContainerService } from './web-container.service';
 
 interface Language {
   id: number;
@@ -66,17 +68,20 @@ interface ExecutionResult {
 
 @Component({
   selector: 'app-root',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TerminalCleanPipe],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
 export class App implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('editorContainer') editorContainer!: ElementRef;
   @ViewChild('previewFrame') previewFrame!: ElementRef<HTMLIFrameElement>;
+  @ViewChild('terminalOutput') terminalRef!: ElementRef;
   private readonly http = inject(HttpClient);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly webcontainerService = inject(WebContainerService);
   private editorView: EditorView | null = null;
   private currentBlobUrl: string | null = null;
+  private iframeInitialized = false;
 
   code = signal('');
   isRunning = signal(false);
@@ -89,6 +94,7 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
   previewHtmlRaw = signal('');
   previewUrl = signal<SafeResourceUrl | null>(null);
   output = signal<string>('Ready...');
+  previewHeight = signal(500);
 
   languages: Language[] = [
     {
@@ -290,17 +296,38 @@ export class AppComponent {
     },
   ];
 
+  isContainerReady = false;
+
   constructor() {
     // This effect runs every time previewUrl is updated
     effect(() => {
-      const url = this.previewUrl();
-      if (url && this.previewFrame) {
-        this.setupErrorTrap();
-      }
+      // 1. We 'read' the signal to track changes
+      this.output();
+
+      // 2. We use requestAnimationFrame to wait for the browser to render the new HTML
+      requestAnimationFrame(() => {
+        if (this.terminalRef?.nativeElement) {
+          const el = this.terminalRef.nativeElement;
+          el.scrollTop = el.scrollHeight;
+        }
+      });
     });
   }
 
   ngOnInit() {
+    // Suppress WebContainer's frame_start.js error
+    window.addEventListener(
+      'error',
+      (e) => {
+        if (e.filename?.includes('frame_start.js')) {
+          e.preventDefault();
+          return false;
+        }
+        return true;
+      },
+      true,
+    );
+
     const lang = this.languages.find((l) => l.id === this.selectedLanguageId());
     this.currentLanguage.set(lang);
     this.code.set(lang?.template || '');
@@ -433,6 +460,8 @@ export class AppComponent {
     this.output.set('');
     this.executionResult.set(null);
     this.previewHtml.set(null);
+    this.iframeInitialized = false; // Add this line
+    this.isContainerReady = false;
 
     this.initializeEditor();
   }
@@ -492,7 +521,7 @@ export class AppComponent {
    * Compiles an Angular component using the external compiler service
    * @param sourceCode The Angular component source code
    */
-  compileAngularComponent(sourceCode: string) {
+  compileAngularComponent_old(sourceCode: string) {
     this.isRunning.set(true);
     this.isPreviewMode.set(true);
     this.output.set('Compiling Angular component... \nThis may take 1 minute.');
@@ -539,6 +568,278 @@ export class AppComponent {
         this.isRunning.set(false);
       },
     });
+  }
+
+  /**
+   *
+   * @param sourceCode
+   * @returns
+   */
+  async compileAngularComponent(sourceCode: string) {
+    this.isRunning.set(true);
+    this.isPreviewMode.set(true);
+    this.output.set(''); // Clear logs for a fresh run
+
+    try {
+      const webcontainer = await this.webcontainerService.init();
+
+      // ⚡ FAST UPDATE: If container is already running
+      if (this.isContainerReady) {
+        this.output.update((v) => v + '\n⚡ Updating source...');
+        await webcontainer.fs.writeFile('/src/app.component.ts', sourceCode);
+        this.isRunning.set(false);
+        return;
+      }
+
+      // 🏗️ FIRST TIME SETUP
+      this.output.set('🏗️ Booting WebContainer...\n');
+
+      const files = {
+        'package.json': {
+          file: {
+            contents: JSON.stringify({
+              name: 'angular-live',
+              type: 'module',
+              dependencies: {
+                '@angular/animations': '17.3.0',
+                '@angular/common': '17.3.0',
+                '@angular/compiler': '17.3.0',
+                '@angular/core': '17.3.0',
+                '@angular/forms': '17.3.0',
+                '@angular/platform-browser': '17.3.0',
+                '@angular/platform-browser-dynamic': '17.3.0',
+                '@angular/router': '17.3.0',
+                '@angular-devkit/build-angular': '17.3.0',
+                '@angular/compiler-cli': '17.3.0',
+                '@analogjs/vite-plugin-angular': '1.3.0',
+                vite: '5.2.10',
+                typescript: '5.4.5',
+                rxjs: '7.8.1',
+                'zone.js': '0.14.4',
+                tslib: '2.6.2',
+                tinyglobby: '0.2.0',
+                postcss: '8.4.38',
+              },
+              scripts: { dev: 'vite --host' },
+            }),
+          },
+        },
+        'vite.config.ts': {
+          file: {
+            contents: `
+import { defineConfig } from 'vite';
+import angular from '@analogjs/vite-plugin-angular';
+
+export default defineConfig({
+  plugins: [angular()],
+  server: {
+    host: true,
+    port: 5173,
+    strictPort: true,
+    watch: {
+      usePolling: true,
+    },
+  },
+  resolve: {
+    mainFields: ['module', 'jsnext:main', 'jsnext'],
+  }
+});
+`,
+          },
+        },
+        'tsconfig.json': {
+          file: {
+            contents: JSON.stringify(
+              {
+                compilerOptions: {
+                  target: 'ES2022',
+                  useDefineForClassFields: false,
+                  module: 'ESNext',
+                  lib: ['ESNext', 'DOM'],
+                  moduleResolution: 'Node',
+                  experimentalDecorators: true,
+                  emitDecoratorMetadata: true,
+                  skipLibCheck: true,
+                  baseUrl: './',
+                  types: ['vite/client'],
+                },
+              },
+              null,
+              2,
+            ),
+          },
+        },
+        src: {
+          directory: {
+            'main.ts': {
+              file: {
+                contents: `
+import 'zone.js';
+import { bootstrapApplication } from '@angular/platform-browser';
+import { AppComponent } from './app.component';
+
+console.log('🚀 main.ts loaded');
+
+// Add error handling
+bootstrapApplication(AppComponent)
+  .then(() => {
+    console.log('✅ Angular app bootstrapped successfully');
+  })
+  .catch(err => {
+    console.error('❌ Bootstrap error:', err);
+    const appRoot = document.querySelector('app-root');
+    if (appRoot) {
+      appRoot.innerHTML = '<div style="color: red; padding: 20px; white-space: pre-wrap;">Bootstrap Error:\\n' + err.message + '\\n\\n' + (err.stack || '') + '</div>';
+    }
+  });
+`,
+              },
+            },
+            'app.component.ts': {
+              file: {
+                contents: sourceCode,
+              },
+            },
+          },
+        },
+        'index.html': {
+          file: {
+            contents: `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Angular Preview</title>
+  <style>
+    body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+    .loading { color: #666; }
+    .error { color: red; padding: 20px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <app-root><div class="loading">Loading Angular...</div></app-root>
+  <script type="module" src="/src/main.ts"></script>
+  
+  <script>
+    // Add global error handler to catch unhandled errors
+    window.addEventListener('error', (e) => {
+      console.error('Global error:', e.message, e.filename, e.lineno);
+      const appRoot = document.querySelector('app-root');
+      if (appRoot) {
+        appRoot.innerHTML = '<div class="error">Error: ' + e.message + '\\n' + e.filename + ':' + e.lineno + '</div>';
+      }
+    });
+    
+    window.addEventListener('unhandledrejection', (e) => {
+      console.error('Unhandled rejection:', e.reason);
+      const appRoot = document.querySelector('app-root');
+      if (appRoot) {
+        appRoot.innerHTML = '<div class="error">Promise rejection: ' + e.reason + '</div>';
+      }
+    });
+    
+    // Check if Angular loaded after 5 seconds
+    setTimeout(() => {
+      const appRoot = document.querySelector('app-root');
+      if (appRoot && appRoot.children.length === 1 && appRoot.textContent.includes('Loading')) {
+        console.error('Angular failed to bootstrap - app-root is still showing loading message');
+        appRoot.innerHTML = '<div class="error">Angular failed to bootstrap. Check the browser console for errors.</div>';
+      }
+    }, 5000);
+  </script>
+</body>
+</html>`,
+          },
+        },
+      };
+
+      await webcontainer.mount(files);
+
+      // 📦 INSTALL STEP
+      this.output.update((val) => val + '📦 npm install\n');
+      const installProcess = await webcontainer.spawn('npm', ['install', '--legacy-peer-deps']);
+
+      installProcess.output.pipeTo(
+        new WritableStream({
+          write: (data) => {
+            if (data.includes('\x1b[1;1H') || data.includes('\x1b[2J')) {
+              this.output.set('');
+              return;
+            }
+
+            if (data.includes('\x1b[1G')) {
+              this.output.update((current) => {
+                const lastNewline = current.lastIndexOf('\n');
+                const base = lastNewline > -1 ? current.substring(0, lastNewline + 1) : '';
+                return base + data;
+              });
+            } else {
+              this.output.update((v) => v + data);
+            }
+          },
+        }),
+      );
+
+      const installCode = await installProcess.exit;
+      if (installCode !== 0) throw new Error('Installation failed');
+
+      // 🚀 RUN STEP
+      this.output.update((val) => val + '\n🚀 Starting Dev Server...\n');
+      const devProcess = await webcontainer.spawn('npm', ['run', 'dev']);
+
+      devProcess.output.pipeTo(
+        new WritableStream({
+          write: (data) => this.output.update((val) => val + data),
+        }),
+      );
+
+      // 🌐 SERVER READY - CRITICAL FIX HERE
+      webcontainer.on('server-ready', (port, url) => {
+        console.log('Server ready on port:', port);
+        console.log('Server URL:', url);
+
+        // Prevent duplicate initialization
+        if (this.iframeInitialized) {
+          console.log('Iframe already initialized, skipping');
+          return;
+        }
+
+        this.output.update((v) => v + `\n✅ Dev server ready at ${url}\n`);
+
+        // Use Angular's zone to ensure change detection
+        setTimeout(() => {
+          const iframeEl = this.previewFrame?.nativeElement;
+          if (!iframeEl) {
+            console.error('Iframe element not found');
+            return;
+          }
+
+          // Clear any existing content and handlers
+          iframeEl.onload = null;
+          iframeEl.onerror = null;
+
+          // Set up load handler BEFORE setting src
+          iframeEl.onload = () => {
+            console.log('✅ Iframe loaded successfully');
+            this.isContainerReady = true;
+            this.isRunning.set(false);
+          };
+
+          iframeEl.onerror = (e) => {
+            console.error('❌ Iframe load error:', e);
+            this.output.update((v) => v + '\n❌ Failed to load preview');
+            this.isRunning.set(false);
+          };
+
+          console.log('Setting iframe src to:', url);
+          iframeEl.src = url;
+          this.iframeInitialized = true;
+        }, 1500); // Give Vite extra time to fully initialize
+      });
+    } catch (error: any) {
+      this.output.update((val) => val + `\n\n❌ Error: ${error.message}`);
+      this.isRunning.set(false);
+    }
   }
 
   // Clean up the string for the UI
@@ -673,9 +974,90 @@ export class AppComponent {
       });
   }
 
+  private cleanTerminalOutput(text: string): string {
+    if (!text) return '';
+
+    return (
+      text
+        // 1. Kill the ANSI codes (The ones causing [32m etc.)
+        .replace(/\x1B\[[0-9;]*[A-Za-z]/g, '')
+        // 2. Kill the "Home" and "Clear" codes explicitly
+        .replace(/\x1B\[1;1H|\x1B\[0J|\x1B\[2J/g, '')
+        // 3. Remove the Backspace + Spinner junk
+        .replace(/.\x08/g, '')
+        // 4. Collapse the giant Vite empty gaps (3+ newlines into 1)
+        .replace(/\n{3,}/g, '\n\n')
+        // 5. Final safety: strip any stray Escape characters
+        .replace(/\x1B/g, '')
+    );
+  }
+
+  copyLogs() {
+    const plainText = this.cleanTerminalOutput(this.output());
+    navigator.clipboard.writeText(plainText);
+    // Optional: show a "Copied!" toast
+  }
+
   ngOnDestroy() {
     if (this.editorView) {
       this.editorView.destroy();
     }
+  }
+
+  consoleVisible = signal(true);
+  consoleMinimized = signal(false);
+  consoleHeight = signal(30); // percentage
+  isResizing = false;
+  private startY = 0;
+  private startHeight = 0;
+
+  toggleConsole() {
+    this.consoleVisible.set(!this.consoleVisible());
+  }
+
+  minimizeConsole() {
+    this.consoleMinimized.update((val) => !val);
+  }
+
+  maximizeConsole() {
+    if (this.consoleHeight() < 90) {
+      this.consoleHeight.set(90);
+    } else {
+      this.consoleHeight.set(30);
+    }
+  }
+
+  startResize(event: MouseEvent) {
+    event.preventDefault();
+    this.isResizing = true;
+    this.startY = event.clientY;
+    this.startHeight = this.consoleHeight();
+
+    document.body.classList.add('resizing');
+
+    const mouseMoveHandler = (e: MouseEvent) => {
+      if (!this.isResizing) return;
+
+      const containerHeight = (event.target as HTMLElement).parentElement?.offsetHeight || 600;
+      const deltaY = e.clientY - this.startY;
+      const deltaPercent = (deltaY / containerHeight) * 100;
+
+      let newConsoleHeight = this.startHeight - deltaPercent;
+
+      // Clamp between 10% and 90%
+      newConsoleHeight = Math.max(10, Math.min(90, newConsoleHeight));
+
+      this.consoleHeight.set(newConsoleHeight);
+    };
+
+    const mouseUpHandler = () => {
+      this.isResizing = false;
+      document.body.classList.remove('resizing');
+      document.removeEventListener('mousemove', mouseMoveHandler);
+      document.removeEventListener('mouseup', mouseUpHandler);
+    };
+
+    document.addEventListener('mousemove', mouseMoveHandler);
+    document.addEventListener('mouseup', mouseUpHandler);
   }
 }
