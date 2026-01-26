@@ -175,22 +175,29 @@
             }
           }
           @if (compilationResult() && isPreviewMode()) {
-            <span class="info-badge success">
-              {{ compilationResult()!.framework | titlecase }} Ready
+            <span
+              class="info-badge"
+              [class.success]="compilationResult()?.success"
+              [class.error]="compilationResult()?.success === false"
+            >
+              {{ compilationResult()!.framework | titlecase }}
+              {{ compilationResult()?.success ? 'Ready' : 'Compilation Failed' }}
             </span>
-            <span class="info-badge compilation-time">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-              </svg>
-              {{ compilationResult()!.compilationTime }}ms
-            </span>
+            @if (compilationResult()?.success) {
+              <span class="info-badge compilation-time">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                </svg>
+                {{ compilationResult()!.compilationTime }}ms
+              </span>
+            }
           }
         </div>
       </div>

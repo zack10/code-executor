@@ -258,6 +258,7 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
         this.isRunning.set(false);
       },
       error: (err) => {
+        this.compilationResult.set(err.error || null);
         // If compilation fails, we keep previewUrl as null so the iframe stays empty or hidden
         const errorMsg = err.error?.logs || err.error?.error || 'Unknown Compilation Error';
         this.output.set(this.formatErrorMessage(errorMsg));
