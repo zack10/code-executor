@@ -15,7 +15,7 @@ For traditional programming languages (such as C, C++, Python, Java, etc.), Code
 #### Web Applications (Angular, React, Vue.js)
 For web application execution, CodeExecutor provides two secure approaches:
 
-1. **Docker Approach**: Executes the uploaded Angular application code within an isolated Docker container. The compiled files are generated inside the container and returned to the client, ensuring complete isolation and security.
+1. **Docker Approach**: Executes the uploaded Angular/React/VueJS code within an isolated Docker container. The compiled files are generated inside the container and returned to the client, ensuring complete isolation and security.
 
 2. **WebContainer Approach**: Leverages browser-based WebContainer technology to build and execute Angular applications entirely locally within the browser environment. This approach eliminates the need for a backend Express.js server to create Docker images and manage file compilation, providing a streamlined, client-side execution experience.
 
