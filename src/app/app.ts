@@ -333,7 +333,17 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
       const frameWin = iframe.contentWindow;
       if (frameWin) {
         frameWin.onerror = (msg, url, line, col, error) => {
-          this.output.set(`❌ Runtime Error: ${msg}\nLine: ${line}, Column: ${col}`);
+          let errorMsg = '';
+          if (typeof msg === 'string') {
+            errorMsg = msg;
+          } else if (error?.message) {
+            errorMsg = error.message;
+          } else if (error instanceof Error) {
+            errorMsg = error.toString();
+          } else {
+            errorMsg = 'Unknown error';
+          }
+          this.output.set(`❌ Runtime Error: ${errorMsg}\nLine: ${line}, Column: ${col}`);
           return false;
         };
       }
