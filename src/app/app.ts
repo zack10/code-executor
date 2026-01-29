@@ -346,8 +346,18 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
    * @returns Complete HTML string
    */
   createPreviewHtml(files: any): string {
-    // Setup the base HTML structure
-    let htmlContent = files['index.html'] || '<div id="root"></div>';
+    const framework = this.currentLanguage()?.framework;
+
+    // Determine the default mount point based on framework
+    let defaultHtml = '<div id="root"></div>'; // React Default
+    if (framework === 'vue') {
+      defaultHtml = '<div id="app"></div>'; // Vue Default
+    } else if (framework === 'angular') {
+      defaultHtml = '<app-root></app-root>'; // Angular Default
+    }
+
+    // Use provided index.html or fallback to our default mount point
+    let htmlContent = files['index.html'] || defaultHtml;
 
     // Aggressively strip external references that cause 404/HTML-fallback errors
     htmlContent = htmlContent.replaceAll(/<script\b[^>]*src="[^"]*"[^>]*><\/script>/g, '');
@@ -357,10 +367,10 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     let scriptTags = '';
     const fileKeys = Object.keys(files);
 
-    // Define execution order (Crucial for Angular, harmless for React)
+    // Define execution order
+    // Angular needs specific order; Vue/React usually just have one main bundle
     const angularPriority = ['polyfills.js', 'runtime.js', 'main.js'];
 
-    // Sort keys so priority files come first
     const sortedKeys = [...fileKeys].sort((a, b) => {
       const indexA = angularPriority.indexOf(a);
       const indexB = angularPriority.indexOf(b);
@@ -375,12 +385,12 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
       if (name.endsWith('.js') && !name.endsWith('.js.map')) {
         let code = files[name];
 
-        // FIX: Remove source map comments (prevents the browser from fetching .map files)
+        // Remove source map comments
         code = code.replaceAll(/\/\/# sourceMappingURL=.*/g, '');
 
-        // FIX: Neutralize Vite's modulepreload fetcher (prevents the 'Unexpected token <' error)
-        // This stops the JS from trying to fetch chunks from a server that doesn't exist
+        // Neutralize Vite's modulepreload fetcher
         code = code.replaceAll(/fetch\(.\.href,.\)/g, 'Promise.resolve()');
+
         scriptTags += `<script type="module">${code}</script>\n`;
       }
     });
@@ -396,6 +406,7 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preview</title>
     ${styleTag}
 </head>
 <body>

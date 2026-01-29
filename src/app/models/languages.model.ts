@@ -4,6 +4,6 @@ export interface Language {
   ext: string;
   template: string;
   useCompiler?: boolean;
-  framework?: 'angular' | 'react';
+  framework?: 'angular' | 'react' | 'vue';
   codemirrorLang: any;
 }

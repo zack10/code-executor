@@ -242,4 +242,53 @@ export default function App() {
   );
 }`,
   },
+  {
+    id: 1003,
+    name: 'Vue 3 (SFC)',
+    ext: 'vue',
+    codemirrorLang: javascript({ typescript: true }), // Vue templates use JS/TS
+    useCompiler: true,
+    framework: 'vue',
+    template: `<script setup>
+import { ref } from 'vue';
+
+const count = ref(0);
+const msg = ref('Hello Vue!');
+
+const increment = () => {
+  count.value++;
+};
+</script>
+
+<template>
+  <div class="vue-container">
+    <h1>{{ msg }}</h1>
+    <p>Count is: <span class="count">{{ count }}</span></p>
+    <button @click="increment">Increment</button>
+    
+    <div v-if="count > 5" class="bonus">
+      You've reached a high score!
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.vue-container {
+  padding: 30px;
+  font-family: 'Arial', sans-serif;
+  text-align: center;
+}
+h1 { color: #42b883; }
+.count { font-weight: bold; color: #35495e; }
+button {
+  background: #42b883;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.bonus { margin-top: 15px; color: #ff6b6b; font-weight: bold; }
+</style>`,
+  },
 ];
