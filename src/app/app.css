@@ -10,8 +10,8 @@
   flex-direction: column;
   background: #0d1117;
   color: #c9d1d9;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell,
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
 .header {
@@ -189,6 +189,10 @@
   padding: 20px;
 }
 
+.preview-window {
+  height: 100%;
+}
+
 .empty-state,
 .loading-state {
   display: flex;
@@ -206,12 +210,14 @@
 }
 
 .output-text {
-  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #c9d1d9;
-  white-space: pre-wrap;
-  word-wrap: break-word;
+  font-family: 'Courier New', Courier, monospace; /* Use a fixed-width font */
+  white-space: pre-wrap; /* Preserve line breaks and spaces */
+  background: #1e1e1e;
+  color: #f8f8f8;
+  padding: 15px;
+  border-radius: 4px;
+  line-height: 1.4;
+  overflow-x: auto;
 }
 
 .spinner,
@@ -258,3 +264,57 @@
 .cm-editor {
   padding-right: 80px;
 }
+
+/* Add these styles to your app.css */
+
+.preview-container {
+  width: 100%;
+  height: 100%;
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+iframe {
+  border: none;
+  width: 100%;
+  height: 100%;
+}
+
+.preview-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white; /* Ensures you don't see the app's dark background if you have one */
+}
+
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #ff6b6b;
+  gap: 16px;
+  padding: 20px;
+  text-align: center;
+}
+
+.error-state svg {
+  opacity: 0.7;
+  stroke: #ff6b6b;
+}
+
+.error-state p {
+  font-size: 14px;
+  line-height: 1.6;
+  max-width: 600px;
+  font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+}
+
+/* Output text styling for compilation messages */
+/* .output-text {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+} */
