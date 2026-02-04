@@ -1,5 +1,4 @@
 import { CommonModule } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
 import {
   AfterViewInit,
   Component,
@@ -53,7 +52,6 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('editorContainer') editorContainer!: ElementRef;
   @ViewChild('previewFrame') previewFrame!: ElementRef<HTMLIFrameElement>;
 
-  private readonly http = inject(HttpClient);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly codeExecutorService = inject(CodeExecutorService);
   private readonly stringUtilsService = inject(StringUtilsService);
@@ -73,6 +71,7 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
   previewUrl = signal<SafeResourceUrl | null>(null);
   output = signal<string>('Ready...');
   compilationResult = signal<CompilationResult | null>(null);
+  isCopied = signal(false);
 
   languages: Language[] = LANGUAGES_LIST;
 
@@ -149,7 +148,7 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
         showMinimap.of({
           displayText: 'characters',
           showOverlay: 'always',
-          create: (view: EditorView) => {
+          create: () => {
             const dom = document.createElement('div');
             dom.className = 'cm-minimap';
             return { dom };
@@ -219,6 +218,15 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     this.output.set('');
     this.executionResult.set(null);
     this.previewHtml.set(null);
+    this.previewUrl.set(null);
+    this.previewHtmlRaw.set('');
+    this.compilationResult.set(null);
+    this.isPreviewMode.set(false);
+    this.previewError.set('');
+    if (this.currentBlobUrl) {
+      URL.revokeObjectURL(this.currentBlobUrl);
+      this.currentBlobUrl = null;
+    }
 
     this.initializeEditor();
   }
@@ -435,6 +443,7 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     this.output.set('');
     this.executionResult.set(null);
     this.isPreviewMode.set(false);
+    this.isCopied.set(false);
 
     const encodedCode = this.stringUtilsService.encodeBase64(this.code());
 
@@ -472,6 +481,23 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
       complete: () => {
         console.log('Request completed');
       },
+    });
+  }
+
+  /**
+   * Copies the current output to the clipboard
+   */
+  copyOutput() {
+    const textToCopy = this.output();
+    if (!textToCopy || textToCopy === 'Ready...') return;
+
+    navigator.clipboard.writeText(textToCopy).then(() => {
+      this.isCopied.set(true);
+      setTimeout(() => {
+        this.isCopied.set(false);
+      }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy text: ', err);
     });
   }
 
