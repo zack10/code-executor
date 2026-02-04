@@ -9,9 +9,9 @@ import { ExecutionResult } from './models/execution.model';
 })
 export class CodeExecutorService {
   private readonly http = inject(HttpClient);
-  private readonly urlJudge0API =
-    'http://192.168.64.130:2358/submissions/?base64_encoded=true&wait=true';
-  private readonly urlFrontEndExecutorAPI = 'http://192.168.64.130:3001/compile';
+  private readonly backendHost = globalThis.location.hostname;
+  private readonly urlJudge0API = `http://${this.backendHost}/judge0/submissions/?base64_encoded=true&wait=true`;
+  private readonly urlFrontEndExecutorAPI = `http://${this.backendHost}/front-compiler/compile`;
 
   /**
    * Executes the given code in the specified programming language using the Judge0 API.

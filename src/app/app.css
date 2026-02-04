@@ -210,8 +210,10 @@
 }
 
 .output-text {
-  font-family: 'Courier New', Courier, monospace; /* Use a fixed-width font */
-  white-space: pre-wrap; /* Preserve line breaks and spaces */
+  font-family: 'Courier New', Courier, monospace;
+  /* Use a fixed-width font */
+  white-space: pre-wrap;
+  /* Preserve line breaks and spaces */
   background: #1e1e1e;
   color: #f8f8f8;
   padding: 15px;
@@ -229,6 +231,7 @@
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -254,10 +257,332 @@
   background: #484f58;
 }
 
+/* Tablet and below - Stack editor and output vertically */
 @media (max-width: 1024px) {
   .main-content {
     grid-template-columns: 1fr;
     grid-template-rows: 1fr 1fr;
+  }
+
+  .header {
+    padding: 0 16px;
+    height: auto;
+    min-height: 64px;
+  }
+
+  .header-content {
+    flex-wrap: wrap;
+    gap: 12px;
+    padding: 12px 0;
+  }
+
+  .logo h1 {
+    font-size: 20px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .language-select {
+    flex: 1;
+    min-width: 150px;
+  }
+
+  .run-button {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+/* Mobile devices */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 12px;
+  }
+
+  .logo {
+    gap: 8px;
+  }
+
+  .logo h1 {
+    font-size: 18px;
+  }
+
+  .logo svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .language-select {
+    padding: 8px 12px;
+    font-size: 13px;
+    min-width: 120px;
+  }
+
+  .run-button {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+
+  .run-button svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .panel-header {
+    padding: 10px 12px;
+  }
+
+  .panel-title {
+    font-size: 13px;
+  }
+
+  .panel-title svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .file-extension {
+    font-size: 12px;
+  }
+
+  .execution-info {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .info-badge {
+    font-size: 11px;
+    padding: 3px 8px;
+  }
+
+  .info-badge svg {
+    width: 12px;
+    height: 12px;
+  }
+
+  .output-content {
+    padding: 12px;
+  }
+
+  .output-text {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  .empty-state,
+  .loading-state {
+    gap: 12px;
+  }
+
+  .empty-state svg,
+  .loading-state svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .empty-state p,
+  .loading-state p {
+    font-size: 14px;
+  }
+
+  .error-state svg {
+    width: 40px;
+    height: 40px;
+  }
+
+  .error-state p {
+    font-size: 13px;
+  }
+
+  /* Adjust editor for mobile */
+  .cm-editor {
+    padding-right: 60px;
+  }
+
+  .cm-scroller {
+    font-size: 13px !important;
+  }
+
+  .cm-minimap {
+    width: 60px !important;
+  }
+}
+
+/* Small mobile devices */
+@media (max-width: 480px) {
+  .header {
+    padding: 0 8px;
+  }
+
+  .logo h1 {
+    font-size: 16px;
+  }
+
+  .logo svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .header-actions {
+    gap: 6px;
+  }
+
+  .language-select {
+    padding: 6px 10px;
+    font-size: 12px;
+    min-width: 100px;
+  }
+
+  .run-button {
+    padding: 6px 12px;
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  .run-button svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .panel-header {
+    padding: 8px 10px;
+  }
+
+  .panel-title {
+    font-size: 12px;
+    gap: 6px;
+  }
+
+  .panel-title svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .file-extension {
+    font-size: 11px;
+  }
+
+  .execution-info {
+    gap: 4px;
+  }
+
+  .info-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+
+  .info-badge svg {
+    width: 10px;
+    height: 10px;
+  }
+
+  .output-content {
+    padding: 10px;
+  }
+
+  .output-text {
+    padding: 10px;
+    font-size: 12px;
+    line-height: 1.3;
+  }
+
+  .empty-state,
+  .loading-state {
+    gap: 10px;
+  }
+
+  .empty-state svg,
+  .loading-state svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .empty-state p,
+  .loading-state p {
+    font-size: 13px;
+  }
+
+  .error-state svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .error-state p {
+    font-size: 12px;
+  }
+
+  /* Hide minimap on very small screens */
+  .cm-editor {
+    padding-right: 0;
+  }
+
+  .cm-minimap {
+    display: none !important;
+  }
+
+  .cm-scroller {
+    font-size: 12px !important;
+  }
+}
+
+/* Landscape mobile orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+  .main-content {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  .header-content {
+    flex-wrap: nowrap;
+  }
+
+  .header-actions {
+    width: auto;
+  }
+}
+
+/* Large desktop screens */
+@media (min-width: 1920px) {
+  .header {
+    padding: 0 32px;
+  }
+
+  .logo h1 {
+    font-size: 26px;
+  }
+
+  .language-select {
+    min-width: 240px;
+    font-size: 15px;
+  }
+
+  .run-button {
+    font-size: 15px;
+    padding: 12px 28px;
+  }
+
+  .panel-header {
+    padding: 14px 24px;
+  }
+
+  .panel-title {
+    font-size: 15px;
+  }
+
+  .output-content {
+    padding: 24px;
+  }
+
+  .output-text {
+    font-size: 15px;
+    padding: 18px;
   }
 }
 
@@ -286,7 +611,7 @@ iframe {
   width: 100%;
   height: 100%;
   border: none;
-  background: white; /* Ensures you don't see the app's dark background if you have one */
+  background: white;
 }
 
 .error-state {
@@ -318,3 +643,30 @@ iframe {
   white-space: pre-wrap;
   word-wrap: break-word;
 } */
+
+.copy-button {
+  background: transparent;
+  border: 1px solid #30363d;
+  color: #8b949e;
+  padding: 4px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  width: 28px;
+  height: 28px;
+}
+
+.copy-button:hover {
+  background: #21262d;
+  color: #c9d1d9;
+  border-color: #8b949e;
+}
+
+.copy-button.copied {
+  color: #3fb950;
+  border-color: #3fb950;
+  background: rgba(46, 160, 67, 0.1);
+}
