@@ -491,14 +491,54 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
     const textToCopy = this.output();
     if (!textToCopy || textToCopy === 'Ready...') return;
 
+    if (!navigator.clipboard) {
+      this.fallbackCopyTextToClipboard(textToCopy);
+      return;
+    }
+
     navigator.clipboard.writeText(textToCopy).then(() => {
-      this.isCopied.set(true);
-      setTimeout(() => {
-        this.isCopied.set(false);
-      }, 2000);
+      this.showCopyFeedback();
     }).catch(err => {
       console.error('Failed to copy text: ', err);
     });
+  }
+
+  /**
+   * Fallback for non-secure contexts (http)
+   * @param text The text to copy
+   */
+  private fallbackCopyTextToClipboard(text: string) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+
+    // Ensure it's not visible but part of the DOM
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    textArea.style.top = '0';
+    document.body.appendChild(textArea);
+
+    textArea.focus();
+    textArea.select();
+
+    try {
+      const successful = document.execCommand('copy');
+      if (successful) {
+        this.showCopyFeedback();
+      } else {
+        console.error('Fallback: unable to copy');
+      }
+    } catch (err) {
+      console.error('Fallback: Oops, unable to copy', err);
+    }
+
+    document.body.removeChild(textArea);
+  }
+
+  private showCopyFeedback() {
+    this.isCopied.set(true);
+    setTimeout(() => {
+      this.isCopied.set(false);
+    }, 2000);
   }
 
   ngOnDestroy() {
