@@ -496,11 +496,14 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    navigator.clipboard.writeText(textToCopy).then(() => {
-      this.showCopyFeedback();
-    }).catch(err => {
-      console.error('Failed to copy text: ', err);
-    });
+    navigator.clipboard
+      .writeText(textToCopy)
+      .then(() => {
+        this.showCopyFeedback();
+      })
+      .catch((err) => {
+        console.error('Failed to copy text: ', err);
+      });
   }
 
   /**
@@ -531,7 +534,7 @@ export class App implements OnInit, AfterViewInit, OnDestroy {
       console.error('Fallback: Oops, unable to copy', err);
     }
 
-    document.body.removeChild(textArea);
+    textArea.remove();
   }
 
   private showCopyFeedback() {
